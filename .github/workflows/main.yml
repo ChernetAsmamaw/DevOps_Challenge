@@ -58,6 +58,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    needs: build
     services:
       db:
         image: postgres:17
