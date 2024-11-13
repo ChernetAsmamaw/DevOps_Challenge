@@ -41,11 +41,6 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        healthcheck:
-          test: ["CMD-SHELL", "pg_isready -U ${{ secrets.POSTGRES_USER }}"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
       redis:
         image: redis:latest
 
@@ -79,17 +74,23 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        healthcheck:
-          test: ["CMD-SHELL", "pg_isready -U ${{ secrets.POSTGRES_USER }}"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
       redis:
         image: redis:latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Wait for database to be ready
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h db -U ${{ secrets.POSTGRES_USER }}; then
+              echo "Database is ready!"
+              break
+            fi
+            echo "Waiting for database..."
+            sleep 2
+          done
 
       - name: Run migrations
         run: |
