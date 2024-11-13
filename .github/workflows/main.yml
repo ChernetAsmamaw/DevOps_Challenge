@@ -49,9 +49,9 @@ jobs:
         run: |
           docker build \
             --build-arg SECRET_KEY=${{ secrets.SECRET_KEY }} \
-            -f todo_project/Dockerfile \
+            -f Dockerfile \
             -t ${{ secrets.DOCKER_USERNAME }}/todo_project:latest \
-            todo_project/
+            .  # Use current directory
 
       - name: Push Docker Image to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/todo_project:latest
