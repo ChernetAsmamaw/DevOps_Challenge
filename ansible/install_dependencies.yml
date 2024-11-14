@@ -1,19 +1,16 @@
+# install_dependencies.yml
+---
+- name: Update and upgrade apt packages
+  apt:
+    update_cache: yes
+    upgrade: yes
 
-- name: Install dependencies for Docker deployment
-  hosts: webserver
-  become: yes
-  tasks:
-    - name: Update and upgrade apt packages
-      apt:
-        update_cache: yes
-        upgrade: yes
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
 
-    - name: Install Docker
-      apt:
-        name: docker.io
-        state: present
-
-    - name: Install Docker Compose
-      apt:
-        name: docker-compose
-        state: present
+- name: Install Docker Compose
+  apt:
+    name: docker-compose
+    state: present

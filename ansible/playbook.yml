@@ -1,14 +1,20 @@
+---
+# First play to install dependencies
+- name: Install dependencies for Docker deployment
+  hosts: webserver
+  become: yes
+  tasks:
+    - import_tasks: install_dependencies.yml # Use import_tasks here
+
+# Second play to deploy the Dockerized application
 - name: Deploy Dockerized application
   hosts: webserver
   become: yes
 
   vars:
-    docker_compose_path: /docker-compose.yml
+    docker_compose_path: "/path/to/docker-compose-directory" # Update with the actual path
 
   tasks:
-    - name: Include the dependencies installation playbook
-      import_playbook: install_dependencies.yml
-
     - name: Pull the latest Docker images
       command: docker-compose pull
       args:
