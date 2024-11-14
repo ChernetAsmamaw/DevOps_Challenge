@@ -1,0 +1,20 @@
+- name: Deploy Dockerized application
+  hosts: webserver
+  become: yes
+
+  vars:
+    docker_compose_path: /docker-compose.yml
+
+  tasks:
+    - name: Include the dependencies installation playbook
+      import_playbook: install_dependencies.yml
+
+    - name: Pull the latest Docker images
+      command: docker-compose pull
+      args:
+        chdir: "{{ docker_compose_path }}"
+
+    - name: Start the application with Docker Compose
+      command: docker-compose up -d
+      args:
+        chdir: "{{ docker_compose_path }}"
