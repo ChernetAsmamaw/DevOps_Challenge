@@ -1,6 +1,6 @@
 # Django To-Do API with DevOps Practices
 
-This project demonstrates deploying a Dockerized Django application with essential DevOps practices. The application is a simple to-do API that includes user authentication, data persistence using PostgreSQL, and email notifications. The deployment involves using Docker, GitHub Actions for CI/CD, and Ansible for automation on a cloud server.
+This project demonstrates deploying a Dockerized Django application with essential DevOps practices. The application is a simple to-do API built using django that includes user authentication, data persistence using PostgreSQL, and email notifications. The deployment involves using Docker, GitHub Actions for CI/CD, and Ansible for automation on a cloud server.
 
 ## Table of Contents
 

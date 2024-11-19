@@ -1,16 +1,27 @@
-# install_dependencies.yml
 ---
+# install_dependencies.yml
 - name: Update and upgrade apt packages
   apt:
     update_cache: yes
     upgrade: yes
 
-- name: Install Docker
+- name: Install required dependencies
   apt:
-    name: docker.io
+    name:
+      - docker.io
+      - docker-compose
+      - python3-pip
+      - python3-venv
     state: present
 
-- name: Install Docker Compose
-  apt:
-    name: docker-compose
-    state: present
+- name: Ensure Docker service is started
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add the user to the Docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes
