@@ -1,5 +1,4 @@
 ---
-# install_dependencies.yml
 - name: Update and upgrade apt packages
   apt:
     update_cache: yes
