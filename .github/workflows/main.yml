@@ -1,15 +1,13 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  code-quality:
-    name: Code Quality
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,36 +21,99 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 black isort pylint
-          pip install -r todo_project/requirements.txt
+          pip install flake8 black isort mypy
 
-      - name: Check code formatting with Black
-        run: black . --check
-
-      - name: Check import sorting with isort
-        run: isort . --check-only --profile black
-
-      - name: Lint with flake8
+      - name: Run linters and formatters
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          black . --check
+          isort . --check-only
+          flake8 .
+          mypy .
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+
+      - name: Run security checks
+        run: |
+          bandit -r . -c pyproject.toml
+          safety check
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, security]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/todo_project:latest,${{ secrets.DOCKER_USERNAME }}/todo_project:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          build-args: |
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+
+      # Temp fix for cache size
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   test:
-    name: Run Tests
     runs-on: ubuntu-latest
-    needs: code-quality
-
+    needs: build
     services:
-      postgres:
-        image: postgres:15
+      db:
+        image: postgres:17
         env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
-          - 5432:5432
+          - 5435:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -70,98 +131,35 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r todo_project/requirements.txt
-          pip install pytest pytest-django pytest-cov
+          pip install pytest pytest-cov pytest-django
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
-          DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
-          DJANGO_SECRET_KEY: test_secret_key
+          DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5435/${{ secrets.POSTGRES_DB }}
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DEBUG: "False"
         run: |
-          cd todo_project
-          python manage.py makemigrations
-          python manage.py migrate
           pytest --cov=. --cov-report=xml
 
-      - name: Upload coverage report
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./todo_project/coverage.xml
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
           fail_ci_if_error: true
 
-  build-and-push:
-    name: Build and Push Docker Images
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name != 'pull_request'
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/todo-app:latest
-            ${{ secrets.DOCKER_USERNAME }}/todo-app:${{ github.sha }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-          build-args: |
-            DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
-
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
   deploy:
-    name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [test]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install SSH key
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Add host to known_hosts
-        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to production server
-        env:
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      - name: Deploy to production
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-            cd ${{ secrets.DEPLOY_PATH }} && \
-            docker-compose pull && \
-            docker-compose up -d --remove-orphans
-          "
-
-      - name: Verify deployment
-        run: |
-          sleep 30
-          curl --fail http://${{ secrets.SERVER_IP }}:${{ secrets.APP_PORT }}/health || exit 1
+          echo "Add your deployment steps here"
+          # Example: Deploy to cloud provider
+          # - name: Deploy to Digital Ocean
+          #   uses: digitalocean/action-doctl@v2
+          #   with:
+          #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
