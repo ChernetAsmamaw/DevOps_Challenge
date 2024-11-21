@@ -1,6 +1,6 @@
 # Django To-Do API with DevOps Practices
 
-This project demonstrates deploying a Dockerized Django application with essential DevOps practices. The application is a simple to-do API built using django that includes user authentication, data persistence using PostgreSQL, and email notifications. The deployment involves using Docker, GitHub Actions for CI/CD, and Ansible for automation on a cloud server.
+This project demonstrates deploying a Dockerized Django application with essential DevOps practices. The application is a simple to-do API built using Django that includes user authentication, data persistence using PostgreSQL, and email notifications. The deployment involves using Docker, GitHub Actions for CI/CD, and Ansible for automation on a cloud server.
 
 ## Table of Contents
 
@@ -31,6 +31,18 @@ The project is split into multiple Docker containers:
 
 Each service is defined in its own Dockerfile and orchestrated with `docker-compose.yml`.
 
+### Running Docker Containers
+
+To build and run the Docker containers, use the following commands:
+
+```bash
+# Build the Docker images
+docker-compose build
+
+# Run the Docker containers
+docker-compose up -d
+```
+
 ## GitHub Actions CI Pipeline
 
 The project includes a GitHub Actions CI pipeline located at `.github/workflows/main.yml` with the following steps:
@@ -38,6 +50,18 @@ The project includes a GitHub Actions CI pipeline located at `.github/workflows/
 - **Linting**: Checks for code quality.
 - **Build and Test**: Builds Docker images and runs unit and integration tests.
 - **Docker Hub Deployment**: Pushes successful builds to Docker Hub.
+
+### Running the CI Pipeline
+
+To trigger the CI pipeline, push your changes to GitHub:
+
+```bash
+git add .
+git commit -m "Your commit message"
+git push origin main
+```
+
+Ensure all checks (linting, testing, and deployment) pass successfully.
 
 ## Ansible Deployment
 
@@ -47,10 +71,17 @@ The Ansible playbook automates server configuration and application deployment, 
 - **Pulling Latest Docker Images**: Fetches the latest application images from Docker Hub.
 - **Running the Application**: Uses `docker-compose up -d` to start the application in detached mode.
 
+### Deploying with Ansible
+
+To deploy the application using Ansible, run:
+
+```bash
+ansible-playbook -i hosts.ini playbook.yml --ask-become-pass
+```
+
 Server details:
 
 - **IP Address**: 104.248.241.153
-- **Username and Password**: Chernet Masresha Asmamaw
 
 ## Port Management
 
@@ -94,6 +125,7 @@ Replace `YOUR_NGINX_PORT`, `YOUR_DJANGO_PORT`, and `YOUR_EMAIL_PORT` with the sp
    - Ensure all checks (linting, testing, and deployment) pass successfully.
 
 5. **Deploy Using Ansible**:
+
    ```bash
    ansible-playbook -i hosts.ini playbook.yml --ask-become-pass
    ```
