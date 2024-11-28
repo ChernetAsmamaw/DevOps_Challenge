@@ -30,6 +30,11 @@
     nginx_port: "{{ lookup('env', 'NGINX_PORT') }}"
     nginx_container_port: "{{ lookup('env', 'NGINX_CONTAINER_PORT') }}"
 
+    # Django superuser credentials
+    django_superuser_username: "{{ lookup('env', 'DJANGO_SUPERUSER_USERNAME') }}"
+    django_superuser_email: "{{ lookup('env', 'DJANGO_SUPERUSER_EMAIL') }}"
+    django_superuser_password: "{{ lookup('env', 'DJANGO_SUPERUSER_PASSWORD') }}"
+
   tasks:
     - name: Log into Docker Hub
       community.docker.docker_login:
