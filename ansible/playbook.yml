@@ -83,6 +83,9 @@
           CONTAINER_PORT="{{ container_port }}"
           NGINX_PORT="{{ nginx_port }}"
           NGINX_CONTAINER_PORT="{{ nginx_container_port }}"
+          DJANGO_SUPERUSER_USERNAME="{{ django_superuser_username }}"
+          DJANGO_SUPERUSER_EMAIL="{{ django_superuser_email }}"
+          DJANGO_SUPERUSER_PASSWORD="{{ django_superuser_password }}"
         dest: "{{ deployment_path }}/.env"
         mode: "0600"
 
