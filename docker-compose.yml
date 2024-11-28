@@ -84,7 +84,7 @@ services:
 
 volumes:
   postgres_data:
-  static_volume: # Added new volume for static files
+  static_volume:
 
 networks:
   app_network:
