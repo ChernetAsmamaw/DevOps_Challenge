@@ -1,10 +1,10 @@
 ---
-# Install dependencies
-# - name: Install dependencies for Docker deployment
-#   hosts: webserver
-#   become: yes
-#   tasks:
-#     - import_tasks: install_dependencies.yml
+Install dependencies
+- name: Install dependencies for Docker deployment
+  hosts: webserver
+  become: yes
+  tasks:
+    - import_tasks: install_dependencies.yml
 
 # Deploy the application
 - name: Deploy Dockerized application

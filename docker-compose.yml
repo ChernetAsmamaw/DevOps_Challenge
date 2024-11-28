@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:15
   env_file:
-    - [.env]
+    - .env
   environment:
     POSTGRES_DB: "${DB_NAME}"
     POSTGRES_USER: "${DB_USER}"
@@ -42,7 +42,7 @@ services:
       - .:/app
       - static_volume:/app/staticfiles
     env_file:
-      - [.env]
+      - .env
     environment:
       - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
@@ -62,7 +62,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - static_volume:/app/staticfiles
     env_file:
-      - [.env]
+      - .env
     environment:
       - NGINX_PORT=${NGINX_PORT}
       - NGINX_CONTAINER_PORT=${NGINX_CONTAINER_PORT}
@@ -84,7 +84,7 @@ services:
 
 volumes:
   postgres_data:
-  static_volume:
+  static_volume: # Added new volume for static files
 
 networks:
   app_network:
