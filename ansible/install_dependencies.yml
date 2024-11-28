@@ -4,7 +4,7 @@
     update_cache: yes
     upgrade: yes
 
-- name: Install required dependencies
+- name: Install required dependencies only if they are not present
   apt:
     name:
       - docker.io
@@ -12,6 +12,7 @@
       - python3-pip
       - python3-venv
     state: present
+    update_cache: yes
 
 - name: Ensure Docker service is started
   service:

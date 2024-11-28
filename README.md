@@ -1,57 +1,81 @@
 # Django To-Do API with DevOps Practices
 
-This project demonstrates deploying a Dockerized Django application with essential DevOps practices. The application is a simple to-do API built using Django that includes user authentication, data persistence using PostgreSQL, and email notifications using Django's built-in email functionality.
+A Django-based Todo API with DevOps practices including containerization, CI/CD pipeline, and automated deployment. Features include user authentication, PostgreSQL database integration, and email notifications.
 
-## Project Setup
+## Features
 
-- **Framework**: Django (Backend API)
+- User authentication with custom user model
+- Task management (CRUD operations)
+- Task privacy (users can only access their own tasks)
+- PostgreSQL database for data persistence
+- Email notifications for task updates
+
+## Technology Stack
+
+- **Backend**: Django
 - **Database**: PostgreSQL
-- **Authentication**: Custom user authentication
-- **Email**: Django's built-in email library for notifications
+- **Web Server**: Nginx
+- **WSGI Server**: Gunicorn
+- **Containerization**: Docker
+- **CI/CD**: GitHub Actions
+- **Configuration Management**: Ansible
+- **Email Service**: Django send_mail
 
-## Dockerization
+## Local Development Setup
 
-The project uses Docker to containerize different services:
-
-- **Django Application**: Runs the Django app with Gunicorn
-- **PostgreSQL Database**: Manages data persistence
-- **Nginx Web Server**: Reverse proxy for managing requests
-
-## Docker Commands
+Clone the repository:
 
 ```bash
-# Build Docker images
-docker-compose build
+git clone https://github.com/ChernetAsmamaw/DevOps_Challenge.git
+cd DevOps_Challenge
+```
 
-# Start containers
-docker-compose up -d
+Create and activate virtual environment:
 
-# Stop and remove containers
+```bash
+python -m venv venv
+source venv/bin/activate  # Or on Windows: .\venv\Scripts\activate
+```
+
+Install dependencies and run migrations:
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+```
+
+Run tests:
+
+```bash
+python manage.py test todo.tests --settings=todo_project.test_settings
+```
+
+## Docker Setup
+
+Start all services using Docker Compose:
+
+```bash
+# Build and start containers
+docker-compose up --build -d
+
+# View logs
+docker-compose logs
+
+# Stop services
 docker-compose down
 ```
 
-## Email Configuration
+## Configuration
 
-Configure email settings in `settings.py`:
+### Environment Variables
 
-```python
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'your-smtp-server'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@example.com'
-EMAIL_HOST_PASSWORD = 'your-email-password'
-```
-
-## Environment Variables
-
-Create a `.env` file with:
+Create a `.env` file:
 
 ```dotenv
 # Database
 POSTGRES_DB=todo_db
 POSTGRES_USER=dbuser
-POSTGRES_PASSWORD=securepassword
+POSTGRES_PASSWORD=securepwd
 DB_HOST=db
 DB_PORT=5432
 
@@ -61,15 +85,55 @@ DJANGO_DEBUG=False
 DJANGO_ALLOWED_HOSTS=localhost,your-domain.com
 
 # Email
-EMAIL_HOST=your-smtp-server
+EMAIL_HOST=smtp.sendgrid.net
 EMAIL_PORT=587
-EMAIL_HOST_USER=your-email@example.com
-EMAIL_HOST_PASSWORD=your-email-password
+EMAIL_HOST_USER=apikey
+EMAIL_HOST_PASSWORD=your-sendgrid-api-key
 ```
 
-## Resources
+## Deployment
 
-- [Docker Documentation](https://docs.docker.com/)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Ansible Documentation](https://docs.ansible.com/)
-- [Django Documentation](https://docs.djangoproject.com/)
+### Server Access
+
+```bash
+ssh username@104.248.241.153
+```
+
+### Deployment Process
+
+- Configure Ansible inventory with server details
+- Run deployment:
+
+```bash
+ansible-playbook -i inventory.yml deploy.yml
+```
+
+### Port Configuration
+
+- **Nginx**: 8400
+- **APP**: 5000
+- **PostgreSQL**: 5432
+
+## API Endpoints
+
+- **GET** `/todo/`: Lists user's todo list
+- **POST** `/todo/add`: Create a new todo item
+- **PUT** `/todo/edit`: Update details of an existing item
+- **DELETE** `/todo/delete/`: Delete a todo item
+
+## Monitoring
+
+View container logs:
+
+```bash
+# Application logs
+docker-compose logs web
+
+# Nginx logs
+docker-compose logs nginx
+
+# Database logs
+docker-compose logs db
+```
+
+## DEVOPS CHALLENGE BY CHERNET ASMAMAW

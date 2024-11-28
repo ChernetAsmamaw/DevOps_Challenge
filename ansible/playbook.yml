@@ -1,10 +1,10 @@
 ---
 # Install dependencies
-- name: Install dependencies for Docker deployment
-  hosts: webserver
-  become: yes
-  tasks:
-    - import_tasks: install_dependencies.yml
+# - name: Install dependencies for Docker deployment
+#   hosts: webserver
+#   become: yes
+#   tasks:
+#     - import_tasks: install_dependencies.yml
 
 # Deploy the application
 - name: Deploy Dockerized application
@@ -25,10 +25,10 @@
     db_password: "{{ lookup('env', 'DB_PASSWORD') }}"
 
     # Application configuration
-    app_port: "{{ lookup('env', 'APP_PORT') | default(5000) }}"
-    container_port: "{{ lookup('env', 'CONTAINER_PORT') | default(8000) }}"
-    nginx_port: "{{ lookup('env', 'NGINX_PORT') | default(8400) }}"
-    nginx_container_port: "{{ lookup('env', 'NGINX_CONTAINER_PORT') | default(80) }}"
+    app_port: "{{ lookup('env', 'APP_PORT') }}"
+    container_port: "{{ lookup('env', 'CONTAINER_PORT') }}"
+    nginx_port: "{{ lookup('env', 'NGINX_PORT') }}"
+    nginx_container_port: "{{ lookup('env', 'NGINX_CONTAINER_PORT') }}"
 
   tasks:
     - name: Log into Docker Hub
