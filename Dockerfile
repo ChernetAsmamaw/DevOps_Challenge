@@ -32,4 +32,4 @@ WORKDIR /todo_application/todo_project
 # This section will ensure the database is prepared and static files are in place
 
 # Start the Gunicorn server
-CMD ["gunicorn", "todo_project.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "todo_project.wsgi:application", "--bind", "0.0.0.0:8000", " --workers", "3", " --timeout", "300"]
